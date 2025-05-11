@@ -160,7 +160,35 @@ Host files at `PUBLIC_URL` to make the podcast accessible via a podcast client.
   ```bash
   0 0 * * * /path/to/venv/bin/python /path/to/all-in-podcast-app/main.py
   ```
+## Architecture
+graph TD
+    A[Start] --> B[RSS Feed Fetching]
+    B -->|RSS Feed| C[Audio Processing]
+    C -->|WAV File| D[Transcription]
+    D -->|Transcript| E[Lesson Extraction]
+    E -->|Lessons, Keywords| F[Context Building]
+    F -->|Related Lessons| G[Script Generation]
+    G -->|Script, Title| H[Text-to-Speech]
+    H -->|Audio File| I[Show Art Generation]
+    I -->|Art File| J[Summarization]
+    J -->|Show Notes| K[File Management]
+    K -->|Episode Files| L[RSS Feed Generation]
+    L --> M[End: Podcast Episode]
 
+    subgraph Modules
+        B -->|feedparser| B1[RSS Feed]
+        C -->|pydub| C1[WAV File]
+        D -->|Whisper.cpp| D1[Transcript]
+        E -->|spaCy, pytextrank| E1[Lessons, Keywords]
+        F -->|sentence-transformers, FAISS| F1[Related Lessons]
+        G -->|GPT-Neo| G1[Script, Title]
+        H -->|Coqui TTS| H1[Audio File]
+        I -->|Stable Diffusion| I1[Art File]
+        J -->|BART| J1[Show Notes]
+        K -->|file operations| K1[Episode Files]
+        L -->|feedgen| L1[RSS Feed]
+    end
+    
 ## Testing
 
 Test the app by running `main.py` with a known episode. Verify:
