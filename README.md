@@ -1,47 +1,116 @@
-# All In Podcast App - Modular Version
+# All In Podcast App
 
-The All In Podcast App is a Python application that generates podcast episodes based on the latest episode of the ["All-In" podcast](https://feeds.megaphone.fm/all-in). It automates fetching episodes, transcribing audio, extracting lessons, generating scripts with AI, converting scripts to audio using voice cloning, creating show art, and producing an RSS feed. The modular design separates functionality into distinct modules, enhancing maintainability, testability, and scalability.
+The All In Podcast App is a modular Python powerhouse that spins up new podcast episodes inspired by the ["All-In" podcast](https://feeds.megaphone.fm/all-in). Using AI magic, it fetches the latest episode, transcribes it with [Whisper.cpp](https://github.com/ggerganov/whisper.cpp), extracts key insights with [spaCy](https://spacy.io/), crafts witty scripts with [GPT-Neo](https://huggingface.co/EleutherAI/gpt-neo-1.3B), clones voices of hosts like Adam Curry and John C. Dvorak with [Coqui TTS](https://coqui.ai/docs/), generates vibrant show art via [Stable Diffusion](https://huggingface.co/CompVis/stable-diffusion-v1-4), and packages everything into an RSS feed. Perfect for AI enthusiasts, developers, and podcast fans, this app showcases cutting-edge automation and content creation.
+
+## About
+
+Authored by Ian Trimble ([GitHub](https://github.com/itrimble)), this app leverages the ["All-In" podcast](https://feeds.megaphone.fm/all-in) to create engaging, AI-generated episodes. It transcribes episodes, extracts key lessons using [spaCy](https://spacy.io/) and [pytextrank](https://github.com/DerwenAI/pytextrank), generates witty scripts with [GPT-Neo](https://huggingface.co/EleutherAI/gpt-neo-1.3B), clones voices with [Coqui TTS](https://coqui.ai/docs/), and designs vibrant show art with [Stable Diffusion](https://huggingface.co/CompVis/stable-diffusion-v1-4). The modular design ensures each component (e.g., transcription, script generation) is isolated for easy maintenance and extension. Whether you’re a developer, AI enthusiast, or podcast fan, this app offers a deep dive into automated content creation.
 
 ## Features
 
-- Fetches the latest "All-In" episode via RSS.
-- Downloads and converts audio to WAV using [pydub](https://github.com/jiaaro/pydub).
-- Transcribes audio with [Whisper.cpp](https://github.com/ggerganov/whisper.cpp).
-- Extracts lessons and keywords using [spaCy](https://spacy.io/) and [pytextrank](https://github.com/DerwenAI/pytextrank).
-- Builds context from past lessons with [sentence-transformers](https://www.sbert.net/) and [FAISS](https://github.com/facebookresearch/faiss).
-- Generates scripts and titles using GPT-Neo from [transformers](https://huggingface.co/docs/transformers/index).
-- Converts scripts to audio with [Coqui TTS](https://coqui.ai/docs/) using voice cloning.
-- Creates show art with [Stable Diffusion](https://huggingface.co/CompVis/stable-diffusion-v1-4).
-- Summarizes scripts for show notes with BART.
-- Manages episode files and generates an RSS feed with [feedgen](https://github.com/lkiesow/python-feedgen).
+- **Episode Fetching**: Grabs the latest ["All-In" episode](https://feeds.megaphone.fm/all-in) via RSS using [feedparser](https://github.com/kurtmckee/feedparser).
+- **Audio Processing**: Converts audio to WAV with [pydub](https://github.com/jiaaro/pydub).
+- **Transcription**: Delivers high-accuracy transcription with [Whisper.cpp](https://github.com/ggerganov/whisper.cpp).
+- **Lesson Extraction**: Pulls insights and keywords using [spaCy](https://spacy.io/) and [pytextrank](https://github.com/DerwenAI/pytextrank).
+- **Context Building**: Links to past lessons with [sentence-transformers](https://www.sbert.net/) and [FAISS](https://github.com/facebookresearch/faiss).
+- **Script Generation**: Creates scripts and titles in the style of Adam Curry and John C. Dvorak using [GPT-Neo](https://huggingface.co/EleutherAI/gpt-neo-1.3B).
+- **Voice Cloning**: Synthesizes audio with [Coqui TTS](https://coqui.ai/docs/) using reference clips.
+- **Show Art**: Designs podcast cover art with [Stable Diffusion](https://huggingface.co/CompVis/stable-diffusion-v1-4).
+- **Show Notes**: Summarizes scripts with [BART](https://huggingface.co/facebook/bart-large-cnn).
+- **RSS Feed**: Publishes episodes with [feedgen](https://github.com/lkiesow/python-feedgen).
+
+## Architecture
+
+The diagram below illustrates the end-to-end workflow of the All In Podcast App, from fetching an episode to producing an RSS feed. Each step maps to a specific module, showcasing the app’s modular design.
+
+```mermaid
+flowchart TD
+    A[Start] --> B[RSS Feed Fetching\nrss_feed.py\nfeedparser]
+    B --> C[Audio Processing\naudio_processing.py\npydub]
+    C --> D[Transcription\ntranscription.py\nWhisper.cpp]
+    D --> E[Lesson Extraction\nnlp_analysis.py\nspaCy, pytextrank]
+    E --> F[Context Building\nnlp_analysis.py\nsentence-transformers, FAISS]
+    F --> G[Script Generation\nscript_generation.py\nGPT-Neo]
+    G --> H[Text-to-Speech\ntts.py\nCoqui TTS]
+    H --> I[Show Art Generation\nshow_art.py\nStable Diffusion]
+    I --> J[Summarization\nsummarization.py\nBART]
+    J --> K[File Management\nfile_management.py\nfile operations]
+    K --> L[RSS Feed Generation\nfile_management.py\nfeedgen]
+    L --> M[End: Podcast Episode\npodcast.xml]
+
+    subgraph Inputs/Outputs
+        B -->|RSS Feed| C
+        C -->|data/latest.wav| D
+        D -->|data/transcript.txt| E
+        E -->|Lessons, Keywords| F
+        F -->|Related Lessons| G
+        G -->|Script, Title| H
+        H -->|data/episode.wav| I
+        I -->|data/show_art.jpg| J
+        J -->|Show Notes| K
+        K -->|data/episode_N.wav\nshow_art_N.jpg| L
+        L -->|podcast.xml| M
+    end
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style M fill:#bbf,stroke:#333,stroke-width:2px
+    style B fill:#dfd,stroke:#333
+    style C fill:#dfd,stroke:#333
+    style D fill:#dfd,stroke:#333
+    style E fill:#dfd,stroke:#333
+    style F fill:#dfd,stroke:#333
+    style G fill:#dfd,stroke:#333
+    style H fill:#dfd,stroke:#333
+    style I fill:#dfd,stroke:#333
+    style J fill:#dfd,stroke:#333
+    style K fill:#dfd,stroke:#333
+    style L fill:#dfd,stroke:#333
+```
+
+### Workflow Steps
+
+1. **RSS Feed Fetching** (`rss_feed.py`): Fetches the latest ["All-In" episode](https://feeds.megaphone.fm/all-in) using [feedparser](https://github.com/kurtmckee/feedparser) and checks `processed.json` to avoid duplicates.
+2. **Audio Processing** (`audio_processing.py`): Downloads audio and converts to WAV using [pydub](https://github.com/jiaaro/pydub). Outputs: `data/latest.wav`.
+3. **Transcription** (`transcription.py`): Transcribes WAV with [Whisper.cpp](https://github.com/ggerganov/whisper.cpp). Outputs: `data/transcript.txt`.
+4. **Lesson Extraction** (`nlp_analysis.py`): Extracts lessons and keywords with [spaCy](https://spacy.io/) and [pytextrank](https://github.com/DerwenAI/pytextrank).
+5. **Context Building** (`nlp_analysis.py`): Finds related lessons using [sentence-transformers](https://www.sbert.net/) and [FAISS](https://github.com/facebookresearch/faiss). Stores embeddings in `data/past_embeddings.npy`.
+6. **Script Generation** (`script_generation.py`): Generates script and title with [GPT-Neo](https://huggingface.co/EleutherAI/gpt-neo-1.3B).
+7. **Text-to-Speech** (`tts.py`): Converts script to audio with [Coqui TTS](https://coqui.ai/docs/) using `data/adam_reference.wav` and `data/john_reference.wav`. Outputs: `data/episode.wav`.
+8. **Show Art Generation** (`show_art.py`): Creates cover art with [Stable Diffusion](https://huggingface.co/CompVis/stable-diffusion-v1-4). Outputs: `data/show_art.jpg`.
+9. **Summarization** (`summarization.py`): Summarizes script with [BART](https://huggingface.co/facebook/bart-large-cnn).
+10. **File Management** (`file_management.py`): Saves files (e.g., `data/episode_N.wav`) and updates `data/episodes.json`.
+11. **RSS Feed Generation** (`file_management.py`): Creates `podcast.xml` with [feedgen](https://github.com/lkiesow/python-feedgen).
 
 ## Project Structure
 
-- `main.py`: Orchestrates the podcast generation process.
-- `config.py`: Stores configuration settings and constants.
-- `rss_feed.py`: Fetches and processes the RSS feed.
-- `audio_processing.py`: Downloads and converts audio files.
-- `transcription.py`: Transcribes audio using Whisper.cpp.
-- `nlp_analysis.py`: Extracts lessons and keywords using NLP.
-- `script_generation.py`: Generates podcast script and title.
-- `tts.py`: Converts script to audio using voice cloning.
-- `show_art.py`: Generates show art using Stable Diffusion.
-- `summarization.py`: Summarizes script for show notes.
-- `file_management.py`: Manages episode files and RSS feed.
-- `requirements.txt`: Lists Python dependencies.
-- `.env`: Environment variables (e.g., `PUBLIC_URL`, `RSS_FEED_URL`).
-- `.gitignore`: Excludes temporary and large files.
-- `data/`: Stores generated files (ignored in Git).
-- `models/`: Stores model files (ignored in Git).
+```plaintext
+AllInApp/
+├── main.py                   # Orchestrates the podcast generation pipeline
+├── config.py                 # Stores configuration settings (paths, URLs)
+├── rss_feed.py               # Fetches and tracks RSS episodes
+├── audio_processing.py       # Downloads and converts audio to WAV
+├── transcription.py          # Transcribes audio with Whisper.cpp
+├── nlp_analysis.py           # Extracts lessons and builds context
+├── script_generation.py      # Generates scripts and titles
+├── tts.py                    # Converts scripts to audio with voice cloning
+├── show_art.py               # Creates show art with Stable Diffusion
+├── summarization.py          # Generates show notes with BART
+├── file_management.py        # Manages files and RSS feed
+├── requirements.txt          # Lists Python dependencies
+├── .env                      # Environment variables (e.g., PUBLIC_URL)
+├── .gitignore                # Excludes temporary/large files
+├── data/                     # Stores generated files (ignored in Git)
+└── models/                   # Stores model files (ignored in Git)
+```
 
 ## Prerequisites
 
-- **Python 3.8+**: Install from [Python Downloads](https://www.python.org/downloads/).
+- **Python 3.8+**: Download from [Python Downloads](https://www.python.org/downloads/).
 - **FFmpeg**: Install via `brew install ffmpeg` (macOS), `sudo apt-get install ffmpeg` (Ubuntu), or download from [FFmpeg](https://ffmpeg.org/download.html).
-- **Whisper.cpp**: For audio transcription, available at [Whisper.cpp GitHub](https://github.com/ggerganov/whisper.cpp).
-- **Reference Audio**: Clean WAV files of Adam Curry and John C. Dvorak (e.g., extracted from [No Agenda Show](https://www.noagendashow.net/) using [Audacity](https://www.audacityteam.org/)).
-- **Internet Connection**: Required for downloading models and accessing the RSS feed.
-- **Hardware**: GPU (NVIDIA or Apple Silicon) recommended for faster model processing; CPU supported but slower. Minimum 16GB RAM.
+- **Whisper.cpp**: Available at [Whisper.cpp GitHub](https://github.com/ggerganov/whisper.cpp).
+- **Reference Audio**: 10-30 second WAV clips of Adam Curry and John C. Dvorak from [No Agenda Show](https://www.noagendashow.net/).
+- **Internet**: For model downloads and RSS access.
+- **Hardware**: GPU (NVIDIA/Apple Silicon) recommended; CPU slower. Minimum 16GB RAM.
 
 ## Installation
 
@@ -57,21 +126,17 @@ The All In Podcast App is a Python application that generates podcast episodes b
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. **Install Python Dependencies**:
+3. **Install Dependencies**:
    ```bash
    pip install -r requirements.txt
+   python -m spacy download en_core_web_sm
    ```
-   For GPU support (NVIDIA), install a CUDA-compatible PyTorch version:
+   For NVIDIA GPUs:
    ```bash
    pip install torch==2.1.1 --index-url https://download.pytorch.org/whl/cu121
    ```
 
-4. **Install spaCy Model**:
-   ```bash
-   python -m spacy download en_core_web_sm
-   ```
-
-5. **Set Up Whisper.cpp**:
+4. **Set Up Whisper.cpp**:
    - Clone and build:
      ```bash
      git clone https://github.com/ggerganov/whisper.cpp.git
@@ -84,136 +149,99 @@ The All In Podcast App is a Python application that generates podcast episodes b
      ```
    - Move to project:
      ```bash
-     mv main ../all-in-podcast-app/whisper.cpp/main
-     mv models/ggml-base.en.bin ../all-in-podcast-app/models/
-     cd ../all-in-podcast-app
+     mv main ../AllInApp/whisper.cpp/main
+     mv models/ggml-base.en.bin ../AllInApp/models/
+     cd ../AllInApp
      ```
 
-6. **Prepare Reference Audio**:
-   - Obtain 10-30 second WAV clips of Adam Curry and John C. Dvorak (e.g., from "No Agenda" episodes).
-   - Use [Audacity](https://www.audacityteam.org/) to extract clean audio segments.
-   - Place in `data/` as `adam_reference.wav` and `john_reference.wav`.
+5. **Prepare Reference Audio**:
+   - Extract 10-30 second WAV clips using [Audacity](https://www.audacityteam.org/) from [No Agenda Show](https://www.noagendashow.net/).
+   - Save as `data/adam_reference.wav` and `data/john_reference.wav` (mono, 24kHz).
 
-7. **Configure Environment**:
-   - Copy `.env.example` to `.env` (or create `.env`):
+6. **Configure Environment**:
+   - Create `.env`:
      ```bash
      cp .env.example .env
      ```
-   - Edit `.env` to set:
+   - Edit `.env`:
      ```
      PUBLIC_URL=http://yourserver.com/
      RSS_FEED_URL=https://feeds.megaphone.fm/all-in
      ```
 
-8. **Create Directories**:
+7. **Create Directories**:
    ```bash
    mkdir -p data models
    ```
 
 ## Usage
 
-Run the main script to generate a podcast episode:
+Generate a podcast episode:
 ```bash
 python main.py
 ```
 
-### What It Does
-
-- Fetches the latest "All-In" episode from the RSS feed.
-- Downloads and converts audio to WAV.
-- Transcribes audio using Whisper.cpp.
-- Extracts lessons and keywords with spaCy and pytextrank.
-- Builds context from past lessons using sentence embeddings and FAISS.
-- Generates a script and title with GPT-Neo.
-- Converts the script to audio using Coqui TTS with voice cloning.
-- Creates show art with Stable Diffusion.
-- Summarizes the script for show notes with BART.
-- Saves episode files and updates an RSS feed.
+### Workflow
+See the **Architecture** section above for details.
 
 ### Output
 
-- **Episode Files**: Audio (`episode_N.wav`) and art (`show_art_N.jpg`) in `data/`.
-- **Metadata**: Episode details in `data/episodes.json`.
-- **RSS Feed**: Generated at `podcast.xml`.
+- **Files**: `data/episode_N.wav`, `data/show_art_N.jpg`.
+- **Metadata**: `data/episodes.json`.
+- **RSS Feed**: `podcast.xml`.
 
-Host files at `PUBLIC_URL` to make the podcast accessible via a podcast client.
+Host at `PUBLIC_URL` for podcast access.
 
 ## Troubleshooting
 
-- **Dependency Errors**: Reinstall dependencies:
+- **Dependencies**: Reinstall:
   ```bash
   pip install -r requirements.txt --force-reinstall
   ```
-- **Whisper.cpp Issues**: Ensure `whisper.cpp/main` is executable (`chmod +x whisper.cpp/main`) and `ggml-base.en.bin` is in `models/`.
-- **Missing Audio Files**: Verify `adam_reference.wav` and `john_reference.wav` are in `data/`.
-- **Slow Performance**: Use a GPU-enabled machine or reduce model sizes (e.g., use a smaller GPT-Neo model).
-- **Model Download Fails**: Check internet connectivity and disk space (~10GB needed for models).
-- **RSS Feed Errors**: Verify `RSS_FEED_URL` in `.env` and ensure the feed is accessible.
+- **Whisper.cpp**: Ensure `whisper.cpp/main` is executable (`chmod +x whisper.cpp/main`) and `models/ggml-base.en.bin` exists.
+- **Audio Files**: Verify `data/adam_reference.wav` and `data/john_reference.wav`.
+- **Performance**: Use GPU or reduce model sizes.
+- **Models**: Confirm internet and ~10GB disk space.
+- **RSS**: Check `RSS_FEED_URL` in `.env`.
 
 ## Notes
 
-- **Performance**: A GPU (NVIDIA or Apple Silicon) significantly speeds up model processing (e.g., Stable Diffusion, TTS). CPU execution is slower but functional.
-- **Legal Considerations**: Generating audio mimicking real individuals (e.g., Adam Curry, John C. Dvorak) may raise legal or ethical concerns. Consult legal experts before public distribution and label content as synthetic or parody if shared.
-- **Model Downloads**: Models like Stable Diffusion, BART, and XTTS download automatically on first run, requiring an internet connection.
-- **File Formats**: Outputs WAV audio for simplicity. To use MP3, modify `tts.py` and `file_management.py` to support MP3 encoding with FFmpeg.
-- **Periodic Execution**: Schedule the app with a cron job for regular episode checks:
+- **Performance**: GPU speeds up [Stable Diffusion](https://huggingface.co/CompVis/stable-diffusion-v1-4) and [Coqui TTS](https://coqui.ai/docs/).
+- **Legal**: Voice cloning may have legal/ethical concerns. Consult experts and label as synthetic.
+- **Models**: [Stable Diffusion](https://huggingface.co/CompVis/stable-diffusion-v1-4), [BART](https://huggingface.co/facebook/bart-large-cnn), [XTTS](https://huggingface.co/coqui/XTTS-v2) download on first run.
+- **Scheduling**: Use cron:
   ```bash
-  0 0 * * * /path/to/venv/bin/python /path/to/all-in-podcast-app/main.py
+  0 0 * * * /path/to/venv/bin/python /path/to/AllInApp/main.py
   ```
-## Architecture
-graph TD
-    A[Start] --> B[RSS Feed Fetching]
-    B -->|RSS Feed| C[Audio Processing]
-    C -->|WAV File| D[Transcription]
-    D -->|Transcript| E[Lesson Extraction]
-    E -->|Lessons, Keywords| F[Context Building]
-    F -->|Related Lessons| G[Script Generation]
-    G -->|Script, Title| H[Text-to-Speech]
-    H -->|Audio File| I[Show Art Generation]
-    I -->|Art File| J[Summarization]
-    J -->|Show Notes| K[File Management]
-    K -->|Episode Files| L[RSS Feed Generation]
-    L --> M[End: Podcast Episode]
 
-    subgraph Modules
-        B -->|feedparser| B1[RSS Feed]
-        C -->|pydub| C1[WAV File]
-        D -->|Whisper.cpp| D1[Transcript]
-        E -->|spaCy, pytextrank| E1[Lessons, Keywords]
-        F -->|sentence-transformers, FAISS| F1[Related Lessons]
-        G -->|GPT-Neo| G1[Script, Title]
-        H -->|Coqui TTS| H1[Audio File]
-        I -->|Stable Diffusion| I1[Art File]
-        J -->|BART| J1[Show Notes]
-        K -->|file operations| K1[Episode Files]
-        L -->|feedgen| L1[RSS Feed]
-    end
-    
 ## Testing
 
-Test the app by running `main.py` with a known episode. Verify:
-- Output files in `data/` (`episode_N.wav`, `show_art_N.jpg`).
-- Metadata in `data/episodes.json`.
-- RSS feed (`podcast.xml`) compatibility with a podcast client.
+Run `main.py` and check:
+- `data/` for `episode_N.wav`, `show_art_N.jpg`.
+- `episodes.json` for metadata.
+- `podcast.xml` in a podcast client.
 
 ## Contributing
 
-Contributions are welcome! To contribute:
-1. Fork the repository.
-2. Create a feature branch (`git checkout -b feature/YourFeature`).
-3. Commit changes (`git commit -m 'Add YourFeature'`).
-4. Push to the branch (`git push origin feature/YourFeature`).
+1. Fork at [https://github.com/itrimble/AllInApp](https://github.com/itrimble/AllInApp).
+2. Create branch: `git checkout -b feature/YourFeature`.
+3. Commit: `git commit -m 'Add YourFeature'`.
+4. Push: `git push origin feature/YourFeature`.
 5. Open a pull request.
 
-Please include tests and update documentation as needed.
+Include tests and update docs.
 
 ## License
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+MIT License. See `LICENSE`.
+
+## Author
+
+Ian Trimble ([GitHub](https://github.com/itrimble))
 
 ## Contact
 
-For questions or support, contact the repository maintainers or open an issue on GitHub.
+File issues at [https://github.com/itrimble/AllInApp](https://github.com/itrimble/AllInApp).
 
 ---
 
