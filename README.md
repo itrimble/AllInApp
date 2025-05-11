@@ -47,10 +47,9 @@ The All In Podcast App is a Python application that generates podcast episodes b
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/yourusername/all-in-podcast-app.git
-   cd all-in-podcast-app
+   git clone https://github.com/itrimble/AllInApp.git
+   cd AllInApp
    ```
-   *Replace `yourusername` with the actual repository owner.*
 
 2. **Set Up Virtual Environment**:
    ```bash
