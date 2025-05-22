@@ -1,0 +1,16 @@
+feedparser
+pydub
+spacy
+pytextrank
+sentence-transformers
+faiss-cpu
+transformers # For GPT-Neo and BART
+torch # Common dependency for many ML models
+coqui-tts # For Coqui TTS
+diffusers # For Stable Diffusion
+accelerate # Often needed with diffusers
+feedgen
+python-dotenv # To load .env files
+
+# Also add a line for spacy model download convenience, though it's a post-pip install step
+# Example: # en_core_web_sm (download via: python -m spacy download en_core_web_sm)
