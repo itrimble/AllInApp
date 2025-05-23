@@ -26,6 +26,11 @@ PROCESSED_JSON = os.path.join(DATA_DIR, 'processed.json') # To track processed e
 # Models paths (placeholders, actual model files will be in models/)
 WHISPER_MODEL_PATH = os.path.join(MODELS_DIR, 'ggml-base.en.bin')
 
+# Path to the compiled whisper.cpp main executable
+# Assumes whisper.cpp compiled 'main' is in AllInApp/whisper.cpp/main
+WHISPER_CPP_DIR = os.path.join(BASE_DIR, 'whisper.cpp')
+WHISPER_EXECUTABLE_PATH = os.path.join(WHISPER_CPP_DIR, 'main')
+
 # Other configurations
 PUBLIC_URL = os.getenv('PUBLIC_URL', 'http://localhost:8000/') # Default if not set in .env
 
