@@ -35,6 +35,12 @@ WHISPER_MODEL_PATH = os.path.join(MODELS_DIR, 'ggml-base.en.bin')
 WHISPER_CPP_DIR = os.path.join(BASE_DIR, 'whisper.cpp')
 WHISPER_EXECUTABLE_PATH = os.path.join(WHISPER_CPP_DIR, 'main')
 
+# Stable Diffusion settings
+STABLE_DIFFUSION_MODEL_ID = "CompVis/stable-diffusion-v1-4"
+# For other potential models, see Hugging Face Hub, e.g.:
+# STABLE_DIFFUSION_MODEL_ID = "stabilityai/stable-diffusion-xl-base-1.0"
+# STABLE_DIFFUSION_MODEL_ID = "runwayml/stable-diffusion-v1-5"
+
 # Other configurations
 PUBLIC_URL = os.getenv('PUBLIC_URL', 'http://localhost:8000/') # Default if not set in .env
 

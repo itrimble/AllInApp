@@ -10,12 +10,12 @@ The current MVP pipeline includes:
 *   **Transcription:** Transcribes the audio content to text using `whisper.cpp`.
 *   **Lesson Extraction:** Pulls insights, key phrases (lessons), and keywords from the transcript using spaCy and pytextrank.
 *   **Context Building:** Identifies related past lessons to provide context for new content. This is achieved by generating sentence embeddings for lessons using Sentence-Transformers and performing similarity searches with a FAISS index that stores embeddings of previously processed lessons. The system maintains a persistent store of past lesson texts and their corresponding FAISS index.
+*   **Show Art Generation:** Creates custom podcast cover art using Stable Diffusion (via the `diffusers` library). The art is generated based on a prompt, which can be derived from the episode's title or other content. The default model is `CompVis/stable-diffusion-v1-4` but can be configured.
 
 Future planned features include:
 *   Automated Summarization
 *   AI-Assisted Script Generation
 *   Text-to-Speech (TTS) for generated content
-*   Show Art Generation
 
 ## Project Structure
 
@@ -72,6 +72,10 @@ AllInApp/
     - Place the model file into the `AllInApp/models/` directory.
     - Ensure `WHISPER_MODEL_PATH` in `AllInApp/config.py` points to this model file.
 
+6.  **Stable Diffusion (for Show Art):**
+    - A GPU (NVIDIA with CUDA, or Apple Silicon with MPS) is highly recommended for generating show art in a reasonable time. CPU generation is supported but will be significantly slower.
+    - The selected Stable Diffusion model (default: `CompVis/stable-diffusion-v1-4` as set in `AllInApp/config.py`) will be downloaded automatically (approx. 4-5GB) on the first run that utilizes the show art feature. This requires an internet connection. Subsequent runs will use the cached model.
+
 ## Configuration
 
 1.  **Environment Variables:**
@@ -99,6 +103,7 @@ The current Minimum Viable Product (MVP) automates the following initial steps o
     *   Extract key phrases (lessons) and keywords using `spaCy` and `pytextrank`.
     *   Build context by finding related past lessons using `Sentence-Transformers` and a `FAISS` index.
     *   Updates the FAISS index and a JSON store of past lessons.
+5.  Generates show art using Stable Diffusion based on the episode title.
 
 **Prerequisites for MVP:**
 
@@ -126,7 +131,8 @@ python AllInApp/main.py
     *   `processed.json`: Updated with the ID of the processed episode.
     *   `faiss_index.bin`: The FAISS index, created or updated with the lessons from the current episode.
     *   `past_lessons.json`: The JSON store of past lessons, created or updated.
-*   A final log message will indicate successful processing, including paths to outputs and summaries of NLP analysis (number of lessons, keywords, context items).
+    *   `show_art.jpg`: Custom cover art generated for the episode.
+*   A final log message will indicate successful processing, including paths to outputs and summaries of NLP analysis and show art generation.
 
 ---
 *This README is a work in progress and will be updated as the project evolves.*

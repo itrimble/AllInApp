@@ -9,6 +9,7 @@ from nlp_analysis import (
     load_sentence_model, 
     build_context
 )
+from show_art import load_diffusion_model, generate_show_art
 import json # For reading transcript
 
 # Configure basic logging for the application
@@ -142,6 +143,38 @@ def run_pipeline():
     logger.info(f"Final transcript available at: {transcript_path}")
     logger.info(f"Lessons extracted: {len(lessons)}, Keywords extracted: {len(keywords)}")
     logger.info(f"Related context items found: {len(related_context)}")
+
+    # Step 5: Generate Show Art
+    logger.info(f"--- Step 5: Generating Show Art for '{episode_title}' ---")
+    diffusion_model = None # Initialize to None
+    if not hasattr(config, 'SHOW_ART_JPG'):
+        logger.warning("config.SHOW_ART_JPG not defined. Skipping show art generation.")
+    else:
+        # a. Load Diffusion Model
+        logger.info("Loading Stable Diffusion model for show art generation...")
+        diffusion_model = load_diffusion_model() # Uses defaults
+        if not diffusion_model:
+            logger.error("Failed to load Stable Diffusion model. Skipping show art generation for this episode.")
+        
+        # b. Construct Prompt & c. Generate Show Art (if model loaded)
+        if diffusion_model:
+            if episode_title:
+                prompt = f"Podcast show art for an episode titled: '{episode_title}'. Style: vibrant, abstract, tech-themed, digital art."
+                logger.info(f"Using prompt for show art: {prompt}")
+                
+                logger.info("Generating show art...")
+                show_art_path = generate_show_art(prompt, config.SHOW_ART_JPG, diffusion_model)
+                if show_art_path:
+                    logger.info(f"Show art generated and saved to: {show_art_path}")
+                    logger.info(f"===== Episode Fully Processed (including Show Art): '{episode_title}' =====")
+                else:
+                    logger.error("Failed to generate show art.")
+                    logger.info(f"===== Episode Processed (NLP complete, Show Art failed): '{episode_title}' =====")
+            else:
+                logger.warning("Episode title not available. Skipping show art generation as prompt cannot be formed.")
+                logger.info(f"===== Episode Processed (NLP complete, Show Art skipped - no title): '{episode_title}' =====")
+        else: # diffusion_model was not loaded
+             logger.info(f"===== Episode Processed (NLP complete, Show Art skipped - model load fail): '{episode_title}' =====")
 
 
 if __name__ == "__main__":
