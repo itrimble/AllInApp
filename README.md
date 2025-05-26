@@ -1,248 +1,138 @@
-# All In Podcast App
+# All-In Podcast Reprocessor (MVP)
 
-The All In Podcast App is a modular Python powerhouse that spins up new podcast episodes inspired by the ["All-In" podcast](https://feeds.megaphone.fm/all-in). Using AI magic, it fetches the latest episode, transcribes it with [Whisper.cpp](https://github.com/ggerganov/whisper.cpp), extracts key insights with [spaCy](https://spacy.io/), crafts witty scripts with [GPT-Neo](https://huggingface.co/EleutherAI/gpt-neo-1.3B), clones voices of hosts like Adam Curry and John C. Dvorak with [Coqui TTS](https://coqui.ai/docs/), generates vibrant show art via [Stable Diffusion](https://huggingface.co/CompVis/stable-diffusion-v1-4), and packages everything into an RSS feed. Perfect for AI enthusiasts, developers, and podcast fans, this app showcases cutting-edge automation and content creation.
+This project is an MVP for reprocessing the All-In Podcast. It includes functionality to fetch episodes, process audio, and transcribe speech to text. Future enhancements will include summarization, script generation, TTS, and artwork generation.
 
-## About
+## Features (MVP + Planned)
 
-Authored by Ian Trimble ([GitHub](https://github.com/itrimble)), this app leverages the ["All-In" podcast](https://feeds.megaphone.fm/all-in) to create engaging, AI-generated episodes. It transcribes episodes, extracts key lessons using [spaCy](https://spacy.io/) and [pytextrank](https://github.com/DerwenAI/pytextrank), generates witty scripts with [GPT-Neo](https://huggingface.co/EleutherAI/gpt-neo-1.3B), clones voices with [Coqui TTS](https://coqui.ai/docs/), and designs vibrant show art with [Stable Diffusion](https://huggingface.co/CompVis/stable-diffusion-v1-4). The modular design ensures each component (e.g., transcription, script generation) is isolated for easy maintenance and extension. Whether you’re a developer, AI enthusiast, or podcast fan, this app offers a deep dive into automated content creation.
+The current MVP pipeline includes:
+*   **RSS Feed Fetching:** Retrieves the latest episode from a specified RSS feed (e.g., All-In Podcast).
+*   **Audio Processing:** Downloads episode audio and converts it to a standard WAV format.
+*   **Transcription:** Transcribes the audio content to text using `whisper.cpp`.
+*   **Lesson Extraction:** Pulls insights, key phrases (lessons), and keywords from the transcript using spaCy and pytextrank.
+*   **Context Building:** Identifies related past lessons to provide context for new content. This is achieved by generating sentence embeddings for lessons using Sentence-Transformers and performing similarity searches with a FAISS index that stores embeddings of previously processed lessons. The system maintains a persistent store of past lesson texts and their corresponding FAISS index.
+*   **Show Art Generation:** Creates custom podcast cover art using Stable Diffusion (via the `diffusers` library). The art is generated based on a prompt, which can be derived from the episode's title or other content. The default model is `CompVis/stable-diffusion-v1-4` but can be configured.
 
-## Features
-
-- **Episode Fetching**: Grabs the latest ["All-In" episode](https://feeds.megaphone.fm/all-in) via RSS using [feedparser](https://github.com/kurtmckee/feedparser).
-- **Audio Processing**: Converts audio to WAV with [pydub](https://github.com/jiaaro/pydub).
-- **Transcription**: Delivers high-accuracy transcription with [Whisper.cpp](https://github.com/ggerganov/whisper.cpp).
-- **Lesson Extraction**: Pulls insights and keywords using [spaCy](https://spacy.io/) and [pytextrank](https://github.com/DerwenAI/pytextrank).
-- **Context Building**: Links to past lessons with [sentence-transformers](https://www.sbert.net/) and [FAISS](https://github.com/facebookresearch/faiss).
-- **Script Generation**: Creates scripts and titles in the style of Adam Curry and John C. Dvorak using [GPT-Neo](https://huggingface.co/EleutherAI/gpt-neo-1.3B).
-- **Voice Cloning**: Synthesizes audio with [Coqui TTS](https://coqui.ai/docs/) using reference clips.
-- **Show Art**: Designs podcast cover art with [Stable Diffusion](https://huggingface.co/CompVis/stable-diffusion-v1-4).
-- **Show Notes**: Summarizes scripts with [BART](https://huggingface.co/facebook/bart-large-cnn).
-- **RSS Feed**: Publishes episodes with [feedgen](https://github.com/lkiesow/python-feedgen).
-
-## Architecture
-
-The diagram below illustrates the end-to-end workflow of the All In Podcast App, from fetching an episode to producing an RSS feed. Each step maps to a specific module, showcasing the app’s modular design.
-
-```mermaid
-flowchart TD
-    A[Start] --> B[RSS Feed Fetching\nrss_feed.py\nfeedparser]
-    B --> C[Audio Processing\naudio_processing.py\npydub]
-    C --> D[Transcription\ntranscription.py\nWhisper.cpp]
-    D --> E[Lesson Extraction\nnlp_analysis.py\nspaCy, pytextrank]
-    E --> F[Context Building\nnlp_analysis.py\nsentence-transformers, FAISS]
-    F --> G[Script Generation\nscript_generation.py\nGPT-Neo]
-    G --> H[Text-to-Speech\ntts.py\nCoqui TTS]
-    H --> I[Show Art Generation\nshow_art.py\nStable Diffusion]
-    I --> J[Summarization\nsummarization.py\nBART]
-    J --> K[File Management\nfile_management.py\nfile operations]
-    K --> L[RSS Feed Generation\nfile_management.py\nfeedgen]
-    L --> M[End: Podcast Episode\npodcast.xml]
-
-    subgraph Inputs/Outputs
-        B -->|RSS Feed| C
-        C -->|data/latest.wav| D
-        D -->|data/transcript.txt| E
-        E -->|Lessons, Keywords| F
-        F -->|Related Lessons| G
-        G -->|Script, Title| H
-        H -->|data/episode.wav| I
-        I -->|data/show_art.jpg| J
-        J -->|Show Notes| K
-        K -->|data/episode_N.wav\nshow_art_N.jpg| L
-        L -->|podcast.xml| M
-    end
-
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style M fill:#bbf,stroke:#333,stroke-width:2px
-    style B fill:#dfd,stroke:#333
-    style C fill:#dfd,stroke:#333
-    style D fill:#dfd,stroke:#333
-    style E fill:#dfd,stroke:#333
-    style F fill:#dfd,stroke:#333
-    style G fill:#dfd,stroke:#333
-    style H fill:#dfd,stroke:#333
-    style I fill:#dfd,stroke:#333
-    style J fill:#dfd,stroke:#333
-    style K fill:#dfd,stroke:#333
-    style L fill:#dfd,stroke:#333
-```
-
-### Workflow Steps
-
-1. **RSS Feed Fetching** (`rss_feed.py`): Fetches the latest ["All-In" episode](https://feeds.megaphone.fm/all-in) using [feedparser](https://github.com/kurtmckee/feedparser) and checks `processed.json` to avoid duplicates.
-2. **Audio Processing** (`audio_processing.py`): Downloads audio and converts to WAV using [pydub](https://github.com/jiaaro/pydub). Outputs: `data/latest.wav`.
-3. **Transcription** (`transcription.py`): Transcribes WAV with [Whisper.cpp](https://github.com/ggerganov/whisper.cpp). Outputs: `data/transcript.txt`.
-4. **Lesson Extraction** (`nlp_analysis.py`): Extracts lessons and keywords with [spaCy](https://spacy.io/) and [pytextrank](https://github.com/DerwenAI/pytextrank).
-5. **Context Building** (`nlp_analysis.py`): Finds related lessons using [sentence-transformers](https://www.sbert.net/) and [FAISS](https://github.com/facebookresearch/faiss). Stores embeddings in `data/past_embeddings.npy`.
-6. **Script Generation** (`script_generation.py`): Generates script and title with [GPT-Neo](https://huggingface.co/EleutherAI/gpt-neo-1.3B).
-7. **Text-to-Speech** (`tts.py`): Converts script to audio with [Coqui TTS](https://coqui.ai/docs/) using `data/adam_reference.wav` and `data/john_reference.wav`. Outputs: `data/episode.wav`.
-8. **Show Art Generation** (`show_art.py`): Creates cover art with [Stable Diffusion](https://huggingface.co/CompVis/stable-diffusion-v1-4). Outputs: `data/show_art.jpg`.
-9. **Summarization** (`summarization.py`): Summarizes script with [BART](https://huggingface.co/facebook/bart-large-cnn).
-10. **File Management** (`file_management.py`): Saves files (e.g., `data/episode_N.wav`) and updates `data/episodes.json`.
-11. **RSS Feed Generation** (`file_management.py`): Creates `podcast.xml` with [feedgen](https://github.com/lkiesow/python-feedgen).
+Future planned features include:
+*   Automated Summarization
+*   AI-Assisted Script Generation
+*   Text-to-Speech (TTS) for generated content
 
 ## Project Structure
 
-```plaintext
+```
 AllInApp/
-├── main.py                   # Orchestrates the podcast generation pipeline
-├── config.py                 # Stores configuration settings (paths, URLs)
-├── rss_feed.py               # Fetches and tracks RSS episodes
-├── audio_processing.py       # Downloads and converts audio to WAV
-├── transcription.py          # Transcribes audio with Whisper.cpp
-├── nlp_analysis.py           # Extracts lessons and builds context
-├── script_generation.py      # Generates scripts and titles
-├── tts.py                    # Converts scripts to audio with voice cloning
-├── show_art.py               # Creates show art with Stable Diffusion
-├── summarization.py          # Generates show notes with BART
-├── file_management.py        # Manages files and RSS feed
-├── requirements.txt          # Lists Python dependencies
-├── .env                      # Environment variables (e.g., PUBLIC_URL)
-├── .gitignore                # Excludes temporary/large files
-├── data/                     # Stores generated files (ignored in Git)
-└── models/                   # Stores model files (ignored in Git)
+├── main.py                 # Main orchestration script for the MVP pipeline
+├── config.py               # Configuration settings (paths, URLs, etc.)
+├── rss_feed.py             # Handles RSS feed fetching and parsing
+├── audio_processing.py     # Handles audio download and conversion
+├── transcription.py        # Handles audio transcription via Whisper.cpp
+├── data/                   # Directory for storing data (audio, transcripts, etc.)
+│   ├── .gitkeep
+│   └── processed.json      # Tracks processed episode IDs
+├── models/                 # Directory for storing ML models (e.g., Whisper model)
+│   └── .gitkeep
+├── whisper.cpp/            # Expected location for whisper.cpp source and compiled 'main'
+│   └── main                # Compiled whisper.cpp executable
+├── requirements.txt        # Python dependencies
+├── .env.example            # Example environment variable configuration
+├── .env                    # Actual environment variable configuration (gitignored)
+└── README.md               # This README file
 ```
 
-## Prerequisites
+## Setup
 
-- **Python 3.8+**: Download from [Python Downloads](https://www.python.org/downloads/).
-- **FFmpeg**: Install via `brew install ffmpeg` (macOS), `sudo apt-get install ffmpeg` (Ubuntu), or download from [FFmpeg](https://ffmpeg.org/download.html).
-- **Whisper.cpp**: Available at [Whisper.cpp GitHub](https://github.com/ggerganov/whisper.cpp).
-- **Reference Audio**: 10-30 second WAV clips of Adam Curry and John C. Dvorak from [No Agenda Show](https://www.noagendashow.net/).
-- **Internet**: For model downloads and RSS access.
-- **Hardware**: GPU (NVIDIA/Apple Silicon) recommended; CPU slower. Minimum 16GB RAM.
+1.  **Clone the Repository:**
+    ```bash
+    git clone <repository_url>
+    cd <repository_name>
+    ```
 
-## Installation
+2.  **Create a Python Virtual Environment:**
+    It's highly recommended to use a virtual environment.
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    ```
 
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/itrimble/AllInApp.git
-   cd AllInApp
-   ```
+3.  **Install Dependencies:**
+    ```bash
+    pip install -r AllInApp/requirements.txt
+    python -m spacy download en_core_web_sm # For NLP analysis (Lesson Extraction)
+    ```
+    *(Note: The `requirements.txt` is inside the `AllInApp` directory).*
 
-2. **Set Up Virtual Environment**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+4.  **Compile Whisper.cpp:**
+    - Clone the `whisper.cpp` repository from `https://github.com/ggerganov/whisper.cpp`.
+    - Follow their instructions to compile it.
+    - Place the compiled `main` executable into the `AllInApp/whisper.cpp/` directory. The path should be `AllInApp/whisper.cpp/main`.
+    - Ensure `WHISPER_EXECUTABLE_PATH` in `AllInApp/config.py` points to this executable.
 
-3. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   python -m spacy download en_core_web_sm
-   ```
-   For NVIDIA GPUs:
-   ```bash
-   pip install torch==2.1.1 --index-url https://download.pytorch.org/whl/cu121
-   ```
+5.  **Download Whisper Model:**
+    - Download a `ggml` model compatible with `whisper.cpp` (e.g., `ggml-base.en.bin`).
+    - Place the model file into the `AllInApp/models/` directory.
+    - Ensure `WHISPER_MODEL_PATH` in `AllInApp/config.py` points to this model file.
 
-4. **Set Up Whisper.cpp**:
-   - Clone and build:
-     ```bash
-     git clone https://github.com/ggerganov/whisper.cpp.git
-     cd whisper.cpp
-     make
-     ```
-   - Download model:
-     ```bash
-     ./models/download-ggml-model.sh base.en
-     ```
-   - Move to project:
-     ```bash
-     mv main ../AllInApp/whisper.cpp/main
-     mv models/ggml-base.en.bin ../AllInApp/models/
-     cd ../AllInApp
-     ```
+6.  **Stable Diffusion (for Show Art):**
+    - A GPU (NVIDIA with CUDA, or Apple Silicon with MPS) is highly recommended for generating show art in a reasonable time. CPU generation is supported but will be significantly slower.
+    - The selected Stable Diffusion model (default: `CompVis/stable-diffusion-v1-4` as set in `AllInApp/config.py`) will be downloaded automatically (approx. 4-5GB) on the first run that utilizes the show art feature. This requires an internet connection. Subsequent runs will use the cached model.
 
-5. **Prepare Reference Audio**:
-   - Extract 10-30 second WAV clips using [Audacity](https://www.audacityteam.org/) from [No Agenda Show](https://www.noagendashow.net/).
-   - Save as `data/adam_reference.wav` and `data/john_reference.wav` (mono, 24kHz).
+## Configuration
 
-6. **Configure Environment**:
-   - Create `.env`:
-     ```bash
-     cp .env.example .env
-     ```
-   - Edit `.env`:
-     ```
-     PUBLIC_URL=http://yourserver.com/
-     RSS_FEED_URL=https://feeds.megaphone.fm/all-in
-     ```
+1.  **Environment Variables:**
+    - Copy the example environment file:
+      ```bash
+      cp AllInApp/.env.example AllInApp/.env
+      ```
+    - Edit `AllInApp/.env` to set your desired `RSS_FEED_URL` and `PUBLIC_URL` (though `PUBLIC_URL` is not used by the MVP).
 
-7. **Create Directories**:
-   ```bash
-   mkdir -p data models
-   ```
+2.  **Configuration File (`AllInApp/config.py`):**
+    - Review `AllInApp/config.py` for default paths and settings. Most paths are relative to the `AllInApp` directory.
+    - Ensure `WHISPER_EXECUTABLE_PATH` and `WHISPER_MODEL_PATH` are correctly set if you've placed the whisper executable or model in non-default locations relative to the `AllInApp` directory.
 
 ## Usage
 
-Generate a podcast episode:
+This section describes how to run the different parts of the application.
+
+### Running the MVP
+
+The current Minimum Viable Product (MVP) automates the following initial steps of the podcast generation pipeline:
+1.  Fetches the latest episode from the configured RSS feed (e.g., the All-In Podcast).
+2.  Downloads the episode audio and converts it to WAV format.
+3.  Transcribes the audio to a text file using `whisper.cpp`.
+4.  Performs NLP analysis on the transcript to:
+    *   Extract key phrases (lessons) and keywords using `spaCy` and `pytextrank`.
+    *   Build context by finding related past lessons using `Sentence-Transformers` and a `FAISS` index.
+    *   Updates the FAISS index and a JSON store of past lessons.
+5.  Generates show art using Stable Diffusion based on the episode title.
+
+**Prerequisites for MVP:**
+
+*   Ensure your Python virtual environment is active and all dependencies are installed as per the "Setup" section:
+    ```bash
+    pip install -r AllInApp/requirements.txt
+    ```
+*   Confirm that `whisper.cpp` is compiled and the `main` executable is located at `AllInApp/whisper.cpp/main`. The path should be correctly set as `WHISPER_EXECUTABLE_PATH` in `AllInApp/config.py`.
+*   Ensure the Whisper model (e.g., `ggml-base.en.bin`) is present in `AllInApp/models/` and `WHISPER_MODEL_PATH` in `config.py` points to it.
+*   If you haven't already, copy `AllInApp/.env.example` to `AllInApp/.env` and customize `RSS_FEED_URL` in `AllInApp/.env` if needed.
+
+**To run the MVP:**
+
+Execute the main script from the project's root directory:
 ```bash
-python main.py
+python AllInApp/main.py
 ```
 
-### Workflow
-See the **Architecture** section above for details.
+**Expected Output:**
 
-### Output
-
-- **Files**: `data/episode_N.wav`, `data/show_art_N.jpg`.
-- **Metadata**: `data/episodes.json`.
-- **RSS Feed**: `podcast.xml`.
-
-Host at `PUBLIC_URL` for podcast access.
-
-## Troubleshooting
-
-- **Dependencies**: Reinstall:
-  ```bash
-  pip install -r requirements.txt --force-reinstall
-  ```
-- **Whisper.cpp**: Ensure `whisper.cpp/main` is executable (`chmod +x whisper.cpp/main`) and `models/ggml-base.en.bin` exists.
-- **Audio Files**: Verify `data/adam_reference.wav` and `data/john_reference.wav`.
-- **Performance**: Use GPU or reduce model sizes.
-- **Models**: Confirm internet and ~10GB disk space.
-- **RSS**: Check `RSS_FEED_URL` in `.env`.
-
-## Notes
-
-- **Performance**: GPU speeds up [Stable Diffusion](https://huggingface.co/CompVis/stable-diffusion-v1-4) and [Coqui TTS](https://coqui.ai/docs/).
-- **Legal**: Voice cloning may have legal/ethical concerns. Consult experts and label as synthetic.
-- **Models**: [Stable Diffusion](https://huggingface.co/CompVis/stable-diffusion-v1-4), [BART](https://huggingface.co/facebook/bart-large-cnn), [XTTS](https://huggingface.co/coqui/XTTS-v2) download on first run.
-- **Scheduling**: Use cron:
-  ```bash
-  0 0 * * * /path/to/venv/bin/python /path/to/AllInApp/main.py
-  ```
-
-## Testing
-
-Run `main.py` and check:
-- `data/` for `episode_N.wav`, `show_art_N.jpg`.
-- `episodes.json` for metadata.
-- `podcast.xml` in a podcast client.
-
-## Contributing
-
-1. Fork at [https://github.com/itrimble/AllInApp](https://github.com/itrimble/AllInApp).
-2. Create branch: `git checkout -b feature/YourFeature`.
-3. Commit: `git commit -m 'Add YourFeature'`.
-4. Push: `git push origin feature/YourFeature`.
-5. Open a pull request.
-
-Include tests and update docs.
-
-## License
-
-MIT License. See `LICENSE`.
-
-## Author
-
-Ian Trimble ([GitHub](https://github.com/itrimble))
-
-## Contact
-
-File issues at [https://github.com/itrimble/AllInApp](https://github.com/itrimble/AllInApp).
+*   Console logs showing the progress: fetching feed, downloading audio, transcribing, and performing NLP analysis.
+*   If successful, you will find these files created/updated in the `AllInApp/data/` directory:
+    *   `latest.wav`: The downloaded and processed audio for the latest episode.
+    *   `transcript.txt`: The generated transcript for the latest episode.
+    *   `processed.json`: Updated with the ID of the processed episode.
+    *   `faiss_index.bin`: The FAISS index, created or updated with the lessons from the current episode.
+    *   `past_lessons.json`: The JSON store of past lessons, created or updated.
+    *   `show_art.jpg`: Custom cover art generated for the episode.
+*   A final log message will indicate successful processing, including paths to outputs and summaries of NLP analysis and show art generation.
 
 ---
-
-*Generated on May 11, 2025*
+*This README is a work in progress and will be updated as the project evolves.*
