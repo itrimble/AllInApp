@@ -28,6 +28,9 @@ venv/
 data/
 models/
 
+# External dependencies
+whisper.cpp/
+
 # Logs
 *.log
 

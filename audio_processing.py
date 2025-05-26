@@ -3,11 +3,12 @@ import requests
 from pydub import AudioSegment
 from pydub.exceptions import CouldntDecodeError # Specific pydub exception
 import logging
+from typing import Optional
 
 # Configure logger for this module
 logger = logging.getLogger(__name__)
 
-def process_audio(audio_url: str, output_wav_path: str) -> str | None:
+def process_audio(audio_url: str, output_wav_path: str) -> Optional[str]:
     """
     Downloads audio from a URL, converts it to WAV format, and saves it.
 

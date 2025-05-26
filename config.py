@@ -31,9 +31,9 @@ PAST_LESSONS_PATH = os.path.join(DATA_DIR, 'past_lessons.json')
 WHISPER_MODEL_PATH = os.path.join(MODELS_DIR, 'ggml-base.en.bin')
 
 # Path to the compiled whisper.cpp main executable
-# Assumes whisper.cpp compiled 'main' is in AllInApp/whisper.cpp/main
+# Assumes whisper.cpp compiled 'whisper-cli' is in AllInApp/whisper.cpp/build/bin/whisper-cli
 WHISPER_CPP_DIR = os.path.join(BASE_DIR, 'whisper.cpp')
-WHISPER_EXECUTABLE_PATH = os.path.join(WHISPER_CPP_DIR, 'main')
+WHISPER_EXECUTABLE_PATH = os.path.join(WHISPER_CPP_DIR, 'build', 'bin', 'whisper-cli')
 
 # Stable Diffusion settings
 STABLE_DIFFUSION_MODEL_ID = "CompVis/stable-diffusion-v1-4"

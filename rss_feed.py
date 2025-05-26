@@ -2,11 +2,12 @@ import feedparser
 import json
 import os
 import logging
+from typing import Optional, Tuple
 
 # Configure logger for this module
 logger = logging.getLogger(__name__)
 
-def fetch_latest_episode(feed_url: str, processed_json_path: str) -> tuple[str | None, str | None]:
+def fetch_latest_episode(feed_url: str, processed_json_path: str) -> Tuple[Optional[str], Optional[str]]:
     """
     Fetches the latest episode from an RSS feed that hasn't been processed yet.
 
