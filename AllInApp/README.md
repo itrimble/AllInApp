@@ -2,6 +2,21 @@
 
 This project is an MVP for reprocessing the All-In Podcast. It includes functionality to fetch episodes, process audio, and transcribe speech to text. Future enhancements will include summarization, script generation, TTS, and artwork generation.
 
+## Features (MVP + Planned)
+
+The current MVP pipeline includes:
+*   **RSS Feed Fetching:** Retrieves the latest episode from a specified RSS feed (e.g., All-In Podcast).
+*   **Audio Processing:** Downloads episode audio and converts it to a standard WAV format.
+*   **Transcription:** Transcribes the audio content to text using `whisper.cpp`.
+*   **Lesson Extraction:** Pulls insights, key phrases (lessons), and keywords from the transcript using spaCy and pytextrank.
+*   **Context Building:** Identifies related past lessons to provide context for new content. This is achieved by generating sentence embeddings for lessons using Sentence-Transformers and performing similarity searches with a FAISS index that stores embeddings of previously processed lessons. The system maintains a persistent store of past lesson texts and their corresponding FAISS index.
+*   **Show Art Generation:** Creates custom podcast cover art using Stable Diffusion (via the `diffusers` library). The art is generated based on a prompt, which can be derived from the episode's title or other content. The default model is `CompVis/stable-diffusion-v1-4` but can be configured.
+
+Future planned features include:
+*   Automated Summarization
+*   AI-Assisted Script Generation
+*   Text-to-Speech (TTS) for generated content
+
 ## Project Structure
 
 ```
@@ -42,6 +57,7 @@ AllInApp/
 3.  **Install Dependencies:**
     ```bash
     pip install -r AllInApp/requirements.txt
+    python -m spacy download en_core_web_sm # For NLP analysis (Lesson Extraction)
     ```
     *(Note: The `requirements.txt` is inside the `AllInApp` directory).*
 
@@ -55,6 +71,10 @@ AllInApp/
     - Download a `ggml` model compatible with `whisper.cpp` (e.g., `ggml-base.en.bin`).
     - Place the model file into the `AllInApp/models/` directory.
     - Ensure `WHISPER_MODEL_PATH` in `AllInApp/config.py` points to this model file.
+
+6.  **Stable Diffusion (for Show Art):**
+    - A GPU (NVIDIA with CUDA, or Apple Silicon with MPS) is highly recommended for generating show art in a reasonable time. CPU generation is supported but will be significantly slower.
+    - The selected Stable Diffusion model (default: `CompVis/stable-diffusion-v1-4` as set in `AllInApp/config.py`) will be downloaded automatically (approx. 4-5GB) on the first run that utilizes the show art feature. This requires an internet connection. Subsequent runs will use the cached model.
 
 ## Configuration
 
@@ -76,9 +96,14 @@ This section describes how to run the different parts of the application.
 ### Running the MVP
 
 The current Minimum Viable Product (MVP) automates the following initial steps of the podcast generation pipeline:
-1.  Fetches the latest episode from the configured RSS feed (by default, the All-In Podcast).
-2.  Downloads the episode audio.
-3.  Transcribes the audio to a text file using Whisper.cpp.
+1.  Fetches the latest episode from the configured RSS feed (e.g., the All-In Podcast).
+2.  Downloads the episode audio and converts it to WAV format.
+3.  Transcribes the audio to a text file using `whisper.cpp`.
+4.  Performs NLP analysis on the transcript to:
+    *   Extract key phrases (lessons) and keywords using `spaCy` and `pytextrank`.
+    *   Build context by finding related past lessons using `Sentence-Transformers` and a `FAISS` index.
+    *   Updates the FAISS index and a JSON store of past lessons.
+5.  Generates show art using Stable Diffusion based on the episode title.
 
 **Prerequisites for MVP:**
 
@@ -99,12 +124,15 @@ python AllInApp/main.py
 
 **Expected Output:**
 
-*   Console logs showing the progress: fetching feed, downloading audio, transcribing.
-*   If successful, you will find:
-    *   The downloaded audio saved as `AllInApp/data/latest.wav`.
-    *   The generated transcript saved as `AllInApp/data/transcript.txt`.
-    *   The `AllInApp/data/processed.json` file will be created or updated to include the ID of the processed episode.
-*   A final log message will indicate the path to the transcript file and the successful processing of the episode.
+*   Console logs showing the progress: fetching feed, downloading audio, transcribing, and performing NLP analysis.
+*   If successful, you will find these files created/updated in the `AllInApp/data/` directory:
+    *   `latest.wav`: The downloaded and processed audio for the latest episode.
+    *   `transcript.txt`: The generated transcript for the latest episode.
+    *   `processed.json`: Updated with the ID of the processed episode.
+    *   `faiss_index.bin`: The FAISS index, created or updated with the lessons from the current episode.
+    *   `past_lessons.json`: The JSON store of past lessons, created or updated.
+    *   `show_art.jpg`: Custom cover art generated for the episode.
+*   A final log message will indicate successful processing, including paths to outputs and summaries of NLP analysis and show art generation.
 
 ---
 *This README is a work in progress and will be updated as the project evolves.*
