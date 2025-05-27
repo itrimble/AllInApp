@@ -11,11 +11,11 @@ The current MVP pipeline includes:
 *   **Lesson Extraction:** Pulls insights, key phrases (lessons), and keywords from the transcript using spaCy and pytextrank.
 *   **Context Building:** Identifies related past lessons to provide context for new content. This is achieved by generating sentence embeddings for lessons using Sentence-Transformers and performing similarity searches with a FAISS index that stores embeddings of previously processed lessons. The system maintains a persistent store of past lesson texts and their corresponding FAISS index.
 *   **Show Art Generation:** Creates custom podcast cover art using Stable Diffusion (via the `diffusers` library). The art is generated based on a prompt, which can be derived from the episode's title or other content. The default model is `CompVis/stable-diffusion-v1-4` but can be configured.
+*   **Text-to-Speech (TTS):** Generates audio from the episode transcript using gTTS.
 
 Future planned features include:
 *   Automated Summarization
 *   AI-Assisted Script Generation
-*   Text-to-Speech (TTS) for generated content
 
 ## Project Structure
 
@@ -26,9 +26,12 @@ AllInApp/
 ├── rss_feed.py             # Handles RSS feed fetching and parsing
 ├── audio_processing.py     # Handles audio download and conversion
 ├── transcription.py        # Handles audio transcription via Whisper.cpp
+├── tts.py                  # Handles Text-to-Speech generation
 ├── data/                   # Directory for storing data (audio, transcripts, etc.)
 │   ├── .gitkeep
-│   └── processed.json      # Tracks processed episode IDs
+│   ├── processed.json      # Tracks processed episode IDs
+│   └── tts_audio/          # Directory for storing generated TTS audio files
+│       └── .gitkeep
 ├── models/                 # Directory for storing ML models (e.g., Whisper model)
 │   └── .gitkeep
 ├── whisper.cpp/            # Expected location for whisper.cpp source and compiled 'main'
@@ -59,13 +62,9 @@ AllInApp/
     pip install -r AllInApp/requirements.txt
     python -m spacy download en_core_web_sm # For NLP analysis (Lesson Extraction)
     ```
-    *(Note: The `requirements.txt` is inside the `AllInApp` directory).*
+    *(Note: The `requirements.txt` is inside the `AllInApp` directory). Ensure it includes `gTTS`.*
 
-    **Important Note on Python Version for Text-to-Speech (TTS):**
-    The `TTS` package (used for Coqui TTS functionality, listed in `requirements.txt`) currently requires Python version >=3.9 and <3.12.
-    If you are using Python 3.12 or newer (e.g., Python 3.13.x), you will encounter errors when trying to install or use `TTS`.
-    To use the planned TTS features, you will need to set up a virtual environment with a compatible Python version (e.g., Python 3.11.x).
-    Tools like `pyenv` or `conda` can be used to manage multiple Python versions.
+    *(Note: The previously mentioned Python version constraint for TTS primarily concerned the Coqui TTS library. `gTTS` is generally more flexible with Python versions.)*
 
 4.  **Compile Whisper.cpp:**
     - Clone the `whisper.cpp` repository from `https://github.com/ggerganov/whisper.cpp`.
@@ -94,6 +93,7 @@ AllInApp/
 2.  **Configuration File (`AllInApp/config.py`):**
     - Review `AllInApp/config.py` for default paths and settings. Most paths are relative to the `AllInApp` directory.
     - Ensure `WHISPER_EXECUTABLE_PATH` and `WHISPER_MODEL_PATH` are correctly set if you've placed the whisper executable or model in non-default locations relative to the `AllInApp` directory.
+    - Note the `TTS_OUTPUT_PATH` (defaulting to `AllInApp/data/tts_audio/`) and `TTS_LANGUAGE` (defaulting to `en`) settings for Text-to-Speech functionality.
 
 ## Usage
 
@@ -109,7 +109,8 @@ The current Minimum Viable Product (MVP) automates the following initial steps o
     *   Extract key phrases (lessons) and keywords using `spaCy` and `pytextrank`.
     *   Build context by finding related past lessons using `Sentence-Transformers` and a `FAISS` index.
     *   Updates the FAISS index and a JSON store of past lessons.
-5.  Generates show art using Stable Diffusion based on the episode title.
+5.  Generates Text-to-Speech (TTS) audio from the transcript.
+6.  Generates show art using Stable Diffusion based on the episode title.
 
 **Prerequisites for MVP:**
 
@@ -137,8 +138,9 @@ python AllInApp/main.py
     *   `processed.json`: Updated with the ID of the processed episode.
     *   `faiss_index.bin`: The FAISS index, created or updated with the lessons from the current episode.
     *   `past_lessons.json`: The JSON store of past lessons, created or updated.
+    *   `tts_audio/<episode_title>_tts.mp3`: The generated TTS audio file for the episode.
     *   `show_art.jpg`: Custom cover art generated for the episode.
-*   A final log message will indicate successful processing, including paths to outputs and summaries of NLP analysis and show art generation.
+*   A final log message will indicate successful processing, including paths to outputs and summaries of NLP analysis, TTS generation, and show art generation.
 
 ---
 *This README is a work in progress and will be updated as the project evolves.*

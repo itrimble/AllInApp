@@ -37,6 +37,10 @@ WHISPER_EXECUTABLE_PATH = os.path.join(WHISPER_CPP_DIR, 'main')
 
 # Stable Diffusion settings
 STABLE_DIFFUSION_MODEL_ID = "CompVis/stable-diffusion-v1-4"
+
+# TTS settings
+TTS_OUTPUT_PATH = os.path.join(DATA_DIR, 'tts_audio') # Directory to save TTS audio files
+TTS_LANGUAGE = 'en' # Default language for TTS
 # For other potential models, see Hugging Face Hub, e.g.:
 # STABLE_DIFFUSION_MODEL_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 # STABLE_DIFFUSION_MODEL_ID = "runwayml/stable-diffusion-v1-5"
@@ -44,6 +48,7 @@ STABLE_DIFFUSION_MODEL_ID = "CompVis/stable-diffusion-v1-4"
 # Other configurations
 PUBLIC_URL = os.getenv('PUBLIC_URL', 'http://localhost:8000/') # Default if not set in .env
 
-# Ensure data and models directories exist
+# Ensure data, models and TTS output directories exist
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(MODELS_DIR, exist_ok=True)
+os.makedirs(TTS_OUTPUT_PATH, exist_ok=True) # Create TTS output path

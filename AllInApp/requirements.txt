@@ -9,6 +9,7 @@ faiss-cpu
 transformers # For GPT-Neo and BART
 torch # Common dependency for many ML models
 TTS
+gTTS
 diffusers # For Stable Diffusion
 accelerate # Often needed with diffusers
 feedgen

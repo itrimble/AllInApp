@@ -10,6 +10,8 @@ from nlp_analysis import (
     build_context
 )
 from show_art import load_diffusion_model, generate_show_art
+from tts import generate_tts # Import for TTS
+import os # For path manipulation
 import json # For reading transcript
 
 # Configure basic logging for the application
@@ -144,8 +146,34 @@ def run_pipeline():
     logger.info(f"Lessons extracted: {len(lessons)}, Keywords extracted: {len(keywords)}")
     logger.info(f"Related context items found: {len(related_context)}")
 
-    # Step 5: Generate Show Art
-    logger.info(f"--- Step 5: Generating Show Art for '{episode_title}' ---")
+    # Step 5: Generate TTS Audio
+    logger.info(f"--- Step 5: Generating TTS Audio for '{episode_title}' ---")
+    if not hasattr(config, 'TTS_OUTPUT_PATH') or not hasattr(config, 'TTS_LANGUAGE'):
+        logger.error("TTS_OUTPUT_PATH or TTS_LANGUAGE not defined in config.py. Skipping TTS generation.")
+    elif not transcript_text.strip():
+        logger.warning(f"Transcript text is empty for '{episode_title}'. Skipping TTS generation.")
+    else:
+        try:
+            tts_filename = f"{episode_title.replace(' ', '_').lower()}_tts.mp3" # Create a safe filename
+            tts_output_filepath = os.path.join(config.TTS_OUTPUT_PATH, tts_filename)
+            
+            # Ensure the output directory exists
+            if not os.path.exists(config.TTS_OUTPUT_PATH):
+                os.makedirs(config.TTS_OUTPUT_PATH)
+                logger.info(f"Created TTS output directory: {config.TTS_OUTPUT_PATH}")
+
+            logger.info(f"Generating TTS audio for '{episode_title}'...")
+            generate_tts(transcript_text, tts_output_filepath, config.TTS_LANGUAGE)
+            logger.info(f"Successfully generated TTS audio for '{episode_title}'. Saved to: {tts_output_filepath}")
+        except Exception as e:
+            logger.exception(f"Error during TTS generation for '{episode_title}'. Error: {e}")
+            # Log completion without TTS
+            logger.info(f"===== Partially Processed Episode (TTS failed): '{episode_title}' =====")
+            logger.info(f"Transcript at: {transcript_path}. Lessons/Keywords extracted. TTS generation failed.")
+
+
+    # Step 6: Generate Show Art
+    logger.info(f"--- Step 6: Generating Show Art for '{episode_title}' ---")
     diffusion_model = None # Initialize to None
     if not hasattr(config, 'SHOW_ART_JPG'):
         logger.warning("config.SHOW_ART_JPG not defined. Skipping show art generation.")
