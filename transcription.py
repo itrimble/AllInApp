@@ -2,12 +2,11 @@ import subprocess
 import os
 import logging
 import shutil # For robust file moving
-from typing import Optional
 
 # Configure logger for this module
 logger = logging.getLogger(__name__)
 
-def transcribe_audio(wav_file_path: str, transcript_output_path: str, whisper_executable_path: str, whisper_model_path: str) -> Optional[str]:
+def transcribe_audio(wav_file_path: str, transcript_output_path: str, whisper_executable_path: str, whisper_model_path: str) -> str | None:
     """
     Transcribes an audio file using whisper.cpp and saves the transcript.
 

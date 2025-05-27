@@ -8,7 +8,7 @@ sentence-transformers
 faiss-cpu
 transformers # For GPT-Neo and BART
 torch # Common dependency for many ML models
-coqui-tts # For Coqui TTS
+TTS
 diffusers # For Stable Diffusion
 accelerate # Often needed with diffusers
 feedgen

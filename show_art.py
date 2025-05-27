@@ -3,7 +3,6 @@ import torch
 import logging
 import os # Added for path operations
 import config # Import the application's config
-from typing import Optional
 
 # Configure logger for this module
 logger = logging.getLogger(__name__)
@@ -11,7 +10,7 @@ logger = logging.getLogger(__name__)
 # Global variable to hold the loaded diffusion model pipeline
 DIFFUSION_PIPELINE = None
 
-def load_diffusion_model(model_id: str = None, device: str = "default") -> Optional[AutoPipelineForText2Image]:
+def load_diffusion_model(model_id: str = None, device: str = "default") -> AutoPipelineForText2Image | None:
     """
     Loads the Stable Diffusion model using AutoPipelineForText2Image.
 
@@ -99,7 +98,7 @@ def load_diffusion_model(model_id: str = None, device: str = "default") -> Optio
         # - Specific compatibility issues with the model or diffusers version.
         return None
 
-def generate_show_art(prompt: str, output_image_path: str, diffusion_pipeline, num_inference_steps: int = 50, guidance_scale: float = 7.5) -> Optional[str]:
+def generate_show_art(prompt: str, output_image_path: str, diffusion_pipeline, num_inference_steps: int = 50, guidance_scale: float = 7.5) -> str | None:
     """
     Generates show art using the provided Stable Diffusion pipeline and saves it.
 

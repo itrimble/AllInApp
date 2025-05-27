@@ -39,69 +39,48 @@ AllInApp/
 └── README.md               # This README file
 ```
 
-## Quick Setup
-
-### Automated Setup (Recommended)
+## Setup
 
 1.  **Clone the Repository:**
     ```bash
-    git clone https://github.com/itrimble/AllInApp.git
-    cd AllInApp
+    git clone <repository_url>
+    cd <repository_name>
     ```
 
-2.  **Run the Setup Script:**
+2.  **Create a Python Virtual Environment:**
+    It's highly recommended to use a virtual environment.
     ```bash
-    chmod +x setup.sh
-    ./setup.sh
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
     ```
 
-This script will automatically:
-- Install all Python dependencies
-- Download the spaCy English model
-- Clone and compile Whisper.cpp
-- Download the Whisper base English model
-- Create necessary directories
-
-### Manual Setup
-
-If you prefer manual setup or the automated script fails:
-
-1.  **Clone the Repository:**
+3.  **Install Dependencies:**
     ```bash
-    git clone https://github.com/itrimble/AllInApp.git
-    cd AllInApp
+    pip install -r AllInApp/requirements.txt
+    python -m spacy download en_core_web_sm # For NLP analysis (Lesson Extraction)
     ```
+    *(Note: The `requirements.txt` is inside the `AllInApp` directory).*
 
-2.  **Install Python Dependencies:**
-    ```bash
-    python3 -m pip install --user -r requirements.txt
-    python3 -m spacy download en_core_web_sm
-    ```
+    **Important Note on Python Version for Text-to-Speech (TTS):**
+    The `TTS` package (used for Coqui TTS functionality, listed in `requirements.txt`) currently requires Python version >=3.9 and <3.12.
+    If you are using Python 3.12 or newer (e.g., Python 3.13.x), you will encounter errors when trying to install or use `TTS`.
+    To use the planned TTS features, you will need to set up a virtual environment with a compatible Python version (e.g., Python 3.11.x).
+    Tools like `pyenv` or `conda` can be used to manage multiple Python versions.
 
-3.  **Install Whisper.cpp:**
-    ```bash
-    git clone https://github.com/ggerganov/whisper.cpp.git
-    cd whisper.cpp
-    make
-    cd ..
-    ```
+4.  **Compile Whisper.cpp:**
+    - Clone the `whisper.cpp` repository from `https://github.com/ggerganov/whisper.cpp`.
+    - Follow their instructions to compile it.
+    - Place the compiled `main` executable into the `AllInApp/whisper.cpp/` directory. The path should be `AllInApp/whisper.cpp/main`.
+    - Ensure `WHISPER_EXECUTABLE_PATH` in `AllInApp/config.py` points to this executable.
 
-4.  **Download Whisper Model:**
-    ```bash
-    mkdir -p models
-    curl -L https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin -o models/ggml-base.en.bin
-    ```
+5.  **Download Whisper Model:**
+    - Download a `ggml` model compatible with `whisper.cpp` (e.g., `ggml-base.en.bin`).
+    - Place the model file into the `AllInApp/models/` directory.
+    - Ensure `WHISPER_MODEL_PATH` in `AllInApp/config.py` points to this model file.
 
-5.  **Create Data Directory:**
-    ```bash
-    mkdir -p data
-    ```
-
-### GPU Acceleration (Optional)
-
-- **NVIDIA GPUs:** Ensure CUDA is installed for faster Stable Diffusion
-- **Apple Silicon:** MPS acceleration is automatically used
-- **CPU Only:** All features work but image generation will be slower
+6.  **Stable Diffusion (for Show Art):**
+    - A GPU (NVIDIA with CUDA, or Apple Silicon with MPS) is highly recommended for generating show art in a reasonable time. CPU generation is supported but will be significantly slower.
+    - The selected Stable Diffusion model (default: `CompVis/stable-diffusion-v1-4` as set in `AllInApp/config.py`) will be downloaded automatically (approx. 4-5GB) on the first run that utilizes the show art feature. This requires an internet connection. Subsequent runs will use the cached model.
 
 ## Configuration
 
@@ -134,22 +113,25 @@ The current Minimum Viable Product (MVP) automates the following initial steps o
 
 **Prerequisites for MVP:**
 
-*   Run the setup script first: `./setup.sh`
-*   Or manually ensure all dependencies are installed as per the "Setup" section
-*   Whisper.cpp should be compiled at `whisper.cpp/build/bin/whisper-cli`
-*   Whisper model should be at `models/ggml-base.en.bin`
+*   Ensure your Python virtual environment is active and all dependencies are installed as per the "Setup" section:
+    ```bash
+    pip install -r AllInApp/requirements.txt
+    ```
+*   Confirm that `whisper.cpp` is compiled and the `main` executable is located at `AllInApp/whisper.cpp/main`. The path should be correctly set as `WHISPER_EXECUTABLE_PATH` in `AllInApp/config.py`.
+*   Ensure the Whisper model (e.g., `ggml-base.en.bin`) is present in `AllInApp/models/` and `WHISPER_MODEL_PATH` in `config.py` points to it.
+*   If you haven't already, copy `AllInApp/.env.example` to `AllInApp/.env` and customize `RSS_FEED_URL` in `AllInApp/.env` if needed.
 
 **To run the MVP:**
 
-Execute the main script:
+Execute the main script from the project's root directory:
 ```bash
-python3 main.py
+python AllInApp/main.py
 ```
 
 **Expected Output:**
 
 *   Console logs showing the progress: fetching feed, downloading audio, transcribing, and performing NLP analysis.
-*   If successful, you will find these files created/updated in the `data/` directory:
+*   If successful, you will find these files created/updated in the `AllInApp/data/` directory:
     *   `latest.wav`: The downloaded and processed audio for the latest episode.
     *   `transcript.txt`: The generated transcript for the latest episode.
     *   `processed.json`: Updated with the ID of the processed episode.
@@ -157,32 +139,6 @@ python3 main.py
     *   `past_lessons.json`: The JSON store of past lessons, created or updated.
     *   `show_art.jpg`: Custom cover art generated for the episode.
 *   A final log message will indicate successful processing, including paths to outputs and summaries of NLP analysis and show art generation.
-
-## Requirements
-
-- **Python 3.9+** (Python 3.10+ recommended for full type hint support)
-- **macOS/Linux/Windows** (tested on macOS ARM64)
-- **4GB+ RAM** (8GB+ recommended for Stable Diffusion)
-- **Internet connection** for model downloads and RSS feeds
-- **Git** for cloning repositories
-- **Build tools** (Xcode Command Line Tools on macOS, build-essential on Linux)
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Python Version:** Use Python 3.9 or later. Check with `python3 --version`
-2. **Missing Build Tools:** Install Xcode Command Line Tools on macOS: `xcode-select --install`
-3. **Whisper.cpp Compilation:** Ensure you have a C++ compiler and make installed
-4. **Model Download:** Large models require stable internet connection
-5. **Memory Issues:** Stable Diffusion requires significant RAM/VRAM
-
-### Getting Help
-
-1. Check the console output for detailed error messages
-2. Ensure all dependencies are properly installed
-3. Verify file paths in `config.py` match your setup
-4. Run the setup script again if issues persist
 
 ---
 *This README is a work in progress and will be updated as the project evolves.*
