@@ -16,3 +16,4 @@ python-dotenv # To load .env files
 requests
 numpy
 safetensors
+rich
