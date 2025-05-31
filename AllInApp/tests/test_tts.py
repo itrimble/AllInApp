@@ -35,7 +35,7 @@ class TestTTS(unittest.TestCase):
         mock_gtts_instance.save.assert_called_once_with(self.output_path)
         # Assuming generate_tts prints success and doesn't return a specific value for success.
         # If it were to return True on success, we'd assert that:
-        # self.assertTrue(result) 
+        # self.assertTrue(result)
 
     @patch('AllInApp.tts.gTTS')
     @patch('builtins.print')
@@ -49,7 +49,7 @@ class TestTTS(unittest.TestCase):
 
         mock_gtts_class.assert_called_once_with(text=self.sample_text, lang='en', slow=False)
         mock_gtts_instance.save.assert_called_once_with(self.output_path)
-        
+
         # Check that an error message was printed
         error_message_found = False
         for call_args in mock_print.call_args_list:
@@ -69,9 +69,9 @@ class TestTTS(unittest.TestCase):
         mock_gtts_class.side_effect = Exception("gTTS initialization failed")
 
         generate_tts(self.sample_text, self.output_path, language='invalid_lang')
-        
+
         mock_gtts_class.assert_called_once_with(text=self.sample_text, lang='invalid_lang', slow=False)
-        
+
         error_message_found = False
         for call_args in mock_print.call_args_list:
             if "An error occurred: gTTS initialization failed" in call_args[0][0]:

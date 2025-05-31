@@ -21,12 +21,12 @@ if __name__ == '__main__':
     # Example usage:
     sample_text = "Hello, this is a test of the text-to-speech function."
     output_file = "output.mp3"
-    
+
     # Create a directory for testing if it doesn't exist
     test_output_dir = "test_audio_output"
     if not os.path.exists(test_output_dir):
         os.makedirs(test_output_dir)
-    
+
     output_file_path = os.path.join(test_output_dir, output_file)
 
     generate_tts(sample_text, output_file_path)
