@@ -1,19 +1,43 @@
-feedparser
-pydub
-spacy
-# For NLP analysis with spaCy, download the English model:
+# RSS Feed Processing
+feedparser               # Used for fetching and parsing RSS feeds (e.g., for podcast episodes).
+
+# Audio Processing
+pydub                    # Helps in manipulating audio files (e.g., converting, slicing, adjusting volume).
+
+# Natural Language Processing (NLP)
+spacy                    # Industrial-strength NLP library; used for tokenization, POS tagging, NER, etc.
+# To use spaCy effectively, a language model is often needed, e.g.:
 # python -m spacy download en_core_web_sm
-pytextrank
-sentence-transformers
-faiss-cpu
-transformers # For GPT-Neo and BART
-torch # Common dependency for many ML models
-TTS
-diffusers # For Stable Diffusion
-accelerate # Often needed with diffusers
-feedgen
-python-dotenv # To load .env files
-requests
-numpy
-safetensors
-rich
+pytextrank               # A Python implementation of TextRank for text summarization and keyword extraction, often used with spaCy.
+sentence-transformers    # Provides easy ways to compute embeddings (vector representations) for sentences & paragraphs. Used for semantic similarity tasks.
+faiss-cpu                # Library for efficient similarity search and clustering of dense vectors. 'cpu' version for CPU-only support.
+transformers             # State-of-the-art Machine Learning for Pytorch, TensorFlow, and JAX. Provides models like BERT, GPT-2 (e.g. for text generation or analysis).
+                         # Comment "For GPT-Neo and BART" seems specific to how it might be used in this project.
+
+# Machine Learning & Deep Learning Core
+torch                    # A fundamental tensor library for deep learning, used by many other ML libraries (transformers, diffusers, TTS).
+
+# Text-to-Speech (TTS)
+TTS                      # Library for advanced text-to-speech generation. (Likely Mozilla TTS or Coqui TTS).
+
+# Image Generation (Show Art)
+diffusers                # Library for state-of-the-art diffusion models (e.g., Stable Diffusion) for image generation.
+accelerate               # A PyTorch library that simplifies running PyTorch code on any kind of distributed setup (multi-GPU, TPU, etc.), often a helper for `diffusers`.
+
+# RSS Feed Generation (if the app also creates feeds)
+feedgen                  # Used to generate RSS or Atom feeds.
+
+# Configuration Management
+python-dotenv            # Reads key-value pairs from a .env file and sets them as environment variables.
+
+# HTTP Requests
+requests                 # Simple and elegant HTTP library for Python, used for making web requests (e.g., downloading files).
+
+# Numerical Operations
+numpy                    # Fundamental package for numerical computation in Python; prerequisite for many scientific libraries.
+
+# Model File Handling
+safetensors              # A new simple format for storing tensors safely (especially for large models), used by Hugging Face.
+
+# Rich CLI User Interface
+rich                     # Library for rich text and beautiful formatting in the terminal, used here for progress bars and enhanced CLI output.
