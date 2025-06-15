@@ -41,3 +41,6 @@ safetensors              # A new simple format for storing tensors safely (espec
 
 # Rich CLI User Interface
 rich                     # Library for rich text and beautiful formatting in the terminal, used here for progress bars and enhanced CLI output.
+
+# Web Framework
+Flask                    # Lightweight web framework for building web applications.
