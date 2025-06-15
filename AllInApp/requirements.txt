@@ -44,3 +44,7 @@ rich                     # Library for rich text and beautiful formatting in the
 
 # Web Framework
 Flask                    # Lightweight web framework for building web applications.
+
+# Asynchronous Task Queue
+celery                   # Distributed task queue for running background tasks.
+redis                    # Python client for Redis (often used as a Celery message broker and result backend).
